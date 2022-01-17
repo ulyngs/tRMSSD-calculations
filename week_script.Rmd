@@ -34,9 +34,9 @@ acti_data <- raw_data %>%
   mutate(date = date(calender_date),
          week = isoweek(date),
          weekday = wday(date, label = TRUE),
-         timestamp = as.numeric(date)) %>% 
+         date_as_number = as.numeric(date),
+         date_time_as_number = as.numeric(calender_date)) %>% 
   filter(!is.na(RA))
-
 ```
 
 # Calculate the variability
@@ -79,7 +79,7 @@ So this here below groups by week (a week is Mon-Sun) and participant id and the
 ```{r}
 tRMSSD_calculations <- acti_data %>% 
   group_by(week, participant_id) %>% 
-  summarise(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~ calc_tRMSSD(.x, timestamp))) %>% 
+  summarise(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~ calc_tRMSSD(.x, date_as_number))) %>% 
   rename_with(.cols = -c(week, participant_id), ~str_c("tRMSSD_", .)) %>% 
   arrange(participant_id, week)
 
