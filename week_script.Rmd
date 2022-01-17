@@ -1,0 +1,142 @@
+---
+title: "Priyanka's script"
+output: html_document
+---
+
+# Load libraries and read in data
+```{r}
+library(tidyverse) # for everything else!
+library(lubridate) # for dates!
+
+# get the csv files in a named vector
+participant_data <- list.files(pattern = ".csv$") %>% 
+  set_names()
+
+# read them in and put in a data frame
+raw_data <- map_df(participant_data, read_csv, .id = "csv_file")
+
+# clean it up
+raw_data <- raw_data %>% 
+  mutate(participant_id = str_extract(csv_file, "c\\d+")) %>% 
+  select(-csv_file) %>% 
+  relocate(participant_id)
+```
+
+# Clean the data
+```{r}
+acti_data <- raw_data %>% 
+  mutate(date = date(calender_date),
+         week = isoweek(date),
+         weekday = wday(date, label = TRUE),
+         timestamp = as.numeric(date)) %>% 
+  filter(!is.na(RA)) %>% 
+  select(participant_id, RA, date:timestamp, calender_date)
+
+```
+
+# Calculate the variability
+```{r}
+calc_tRMSSD <- function(mood_data, timestamp_data){
+  if (length(mood_data) < 2){
+    return(NA)
+  } else {
+  
+  # create tibble and make sure it's arranged by timestamp
+  data_calc <- tibble(
+    mood = mood_data,
+    timestamp = timestamp_data
+  ) %>% 
+    arrange(timestamp)
+  
+  # get the difference in mood and time between days
+  data_calc <- data_calc %>% 
+    mutate(dtime = timestamp - lag(timestamp),
+           dmood = mood - lag(mood)) %>% 
+    filter(!is.na(dmood)) %>% 
+    mutate(dtime = as.numeric(dtime))
+  
+  # calculate the tRMSSD value
+  sqrt(1/n*sum((data_calc$dmood/data_calc$dtime)^2))
+  }
+}
+
+acti_data %>% 
+  group_by(week, participant_id) %>% 
+  summarise(calc_tRMSSD(RA, timestamp))
+
+```
+
+This scripts calculates the weekly variability markers for RA actigraphy data
+
+
+# ... and then a miracle occurs!
+```{r}
+# tRMSSD calculation
+tRMSSD <- function(mood, timestamp){
+  
+  if (length(act)<=1){
+    return(NA)
+  }
+  
+  else{
+    # Sort timestamp and mood
+    act=act[order(timestamp)]
+    timestamp=timestamp[order(timestamp)]
+    n=length(act)
+    dtime = timestamp[2:n]-timestamp[1:n-1]
+    dact = act[2:n]-act[1:n-1]
+    value = sqrt(1/n*sum((dact/dtime)^2))
+    
+    return(value)
+  }
+} 
+
+# tRMSSD calculation
+tRMSSD <- function(mood, timestamp){
+  
+  if (length(act)<=1){
+    return(NA)
+  }
+  
+  else{
+    # Sort timestamp and mood
+    act=act[order(timestamp)]
+    timestamp=timestamp[order(timestamp)]
+    n=length(act)
+    dtime = timestamp[2:n]-timestamp[1:n-1]
+    dact = act[2:n]-act[1:n-1]
+    value = sqrt(1/n*sum((dact/dtime)^2))
+    
+    return(value)
+  }
+} 
+
+# define mood and calculate weeks
+act = datac$RA  # Used whatever measurement of mood/actigraphy you need - using RA here
+ts = datac$timestamp
+
+
+nWeeks = floor(length(ts)/7) # This calculates the number of weeks you have in your sample   ## UL: this is obviously wrong!!!! 
+
+rmssdPerWeek = vector('double', nWeeks) # This creates an empty vector that will contain the weekly RMSSD values
+
+rmssdPerWeek
+
+
+# calculate tRMSSD per week
+for (i in 1:nWeeks){
+  actForTheWeek = act[((i-1)*7+1):(i*7)]
+  tsForTheWeek=ts[((i-1)*7+1):(i*7)]
+  rmssdPerWeek[i]=tRMSSD(actForTheWeek,tsForTheWeek)
+}
+
+for (i in 1:nWeeks){
+  print("priyanka is great")
+  print(i)
+}
+
+
+act[((1-1)*7+1):(1*7)]
+
+```
+
