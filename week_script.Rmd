@@ -7,6 +7,7 @@ output: html_document
 ```{r}
 library(tidyverse) # for everything else!
 library(lubridate) # for dates!
+library(fs)
 ```
 
 # Create function to calculate variability
@@ -44,7 +45,7 @@ calc_tRMSSD <- function(mood_data, timestamp_data){
 ### Read in data
 ```{r}
 # get the csv files in a named vector
-participant_data <- list.files(path = "data/raw", pattern = "actigraphy.csv$") %>% 
+participant_data <- list.files(path = "data/raw", pattern = "actigraphy.csv$", full.names = TRUE) %>% 
   set_names()
 
 # read them in and put in a data frame
@@ -52,9 +53,10 @@ raw_data <- map_df(participant_data, read_csv, .id = "csv_file")
 
 # clean it up
 raw_data <- raw_data %>% 
-  mutate(participant_id = str_extract(csv_file, "c\\d+")) %>% 
+  mutate(participant_id = str_extract(path_file(csv_file), "c\\d+")) %>% 
   select(-csv_file) %>% 
   relocate(participant_id)
+
 ```
 
 ### Clean data
@@ -91,7 +93,7 @@ write_csv(tRMSSD_calculations, "tRMSSD_calculation.csv")
 ### Read in data
 ```{r}
 # get the csv files in a named vector
-participant_data <- list.files(path = "data/raw", pattern = "PANAS.csv$") %>% 
+participant_data <- list.files(path = "data/raw", pattern = "PANAS.csv$", full.names = TRUE) %>% 
   set_names()
 
 # read them in and put in a data frame
