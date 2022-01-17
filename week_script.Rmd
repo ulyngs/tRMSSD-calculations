@@ -23,6 +23,12 @@ raw_data <- raw_data %>%
 ```
 
 # Clean the data
+We are 
+
+- adding columns for the date, week, weekday, and adds a numeric timestamp (this just as the date as a number - it's probably number of days since 1 jan 1970 or something to that effect! :)  )
+- removing entries that are NA for the RA column
+
+
 ```{r}
 acti_data <- raw_data %>% 
   mutate(date = date(calender_date),
@@ -81,3 +87,17 @@ write_csv(tRMSSD_calculations, "tRMSSD_calculation.csv")
 ```
 
 # Other stuff
+Here's some other stuff you wanted! :)
+
+```{r}
+# count number of weeks each participant has data from
+acti_data %>% 
+  distinct(participant_id, week) %>% 
+  group_by(participant_id) %>% 
+  summarise(num_weeks = n())
+
+# count how many entries each participant has within a week
+acti_data %>% 
+  count(participant_id, week)
+```
+
