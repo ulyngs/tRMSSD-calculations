@@ -1,5 +1,5 @@
 # read in file (change filename each time here)
-datac=read.csv('/Users/priyankapanchal/Documents/Oxford/COMET/Behavioural/Actigraphy/tRMSSD/Data/c81_actigraphy.csv')
+datac=read.csv("c07_actigraphy.csv")
 datac$datetime=as.POSIXct(paste(as.Date(datac$calender_date,format='%Y-%m-%d')))
 datac$timestamp=as.numeric(datac$datetime)
 
