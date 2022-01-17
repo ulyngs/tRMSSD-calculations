@@ -140,6 +140,7 @@ write_csv(tRMSSD_panas, "data/processed/tRMSSD_panas.csv")
 # Other stuff
 Here's some other stuff you wanted! :)
 
+## actigraphy data
 ```{r}
 # count number of weeks each participant has data from
 acti_data %>% 
@@ -149,6 +150,19 @@ acti_data %>%
 
 # count how many entries each participant has within a week
 acti_data %>% 
+  count(participant_id, week)
+```
+
+## actigraphy data
+```{r}
+# count number of weeks each participant has data from
+panas_data %>% 
+  distinct(participant_id, week) %>% 
+  group_by(participant_id) %>% 
+  summarise(num_weeks = n())
+
+# count how many entries each participant has within a week
+panas_data %>% 
   count(participant_id, week)
 ```
 
