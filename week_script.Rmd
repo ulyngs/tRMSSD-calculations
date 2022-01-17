@@ -35,7 +35,7 @@ calc_tRMSSD <- function(mood_data, timestamp_data){
     mutate(dtime = as.numeric(dtime))
   
   # calculate the tRMSSD value
-  sqrt(1/n*sum((data_calc$dmood/data_calc$dtime)^2))
+  sqrt(1/nrow(data_calc)*sum((data_calc$dmood/data_calc$dtime)^2))
   }
 }
   
@@ -86,13 +86,13 @@ So this here below groups by week (a week is Mon-Sun) and participant id and the
 
 
 ```{r}
-tRMSSD_calculations <- acti_data %>% 
+tRMSSD_actigraphy <- acti_data %>% 
   group_by(week, participant_id) %>% 
-  summarise(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~ calc_tRMSSD(.x, date_as_number))) %>% 
+  summarise(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~ calc_tRMSSD(.x, date_as_number))) %>%  
   rename_with(.cols = -c(week, participant_id), ~str_c("tRMSSD_", .)) %>% 
   arrange(participant_id, week)
 
-write_csv(tRMSSD_calculations, "data/processed/tRMSSD_actigraphy.csv")
+write_csv(tRMSSD_actigraphy, "data/processed/tRMSSD_actigraphy.csv")
 ```
 
 ## PANAS
