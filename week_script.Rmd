@@ -86,7 +86,7 @@ tRMSSD_calculations <- acti_data %>%
   rename_with(.cols = -c(week, participant_id), ~str_c("tRMSSD_", .)) %>% 
   arrange(participant_id, week)
 
-write_csv(tRMSSD_calculations, "tRMSSD_calculation.csv")
+write_csv(tRMSSD_calculations, "data/processed/tRMSSD_calculation.csv")
 ```
 
 ## PANAS
