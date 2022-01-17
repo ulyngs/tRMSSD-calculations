@@ -44,7 +44,7 @@ calc_tRMSSD <- function(mood_data, timestamp_data){
 ### Read in data
 ```{r}
 # get the csv files in a named vector
-participant_data <- list.files(pattern = "actigraphy.csv$") %>% 
+participant_data <- list.files(path = "data/raw", pattern = "actigraphy.csv$") %>% 
   set_names()
 
 # read them in and put in a data frame
@@ -88,6 +88,52 @@ write_csv(tRMSSD_calculations, "tRMSSD_calculation.csv")
 ```
 
 ## PANAS
+### Read in data
+```{r}
+# get the csv files in a named vector
+participant_data <- list.files(path = "data/raw", pattern = "PANAS.csv$") %>% 
+  set_names()
+
+# read them in and put in a data frame
+raw_data <- map_df(participant_data, read_csv, .id = "csv_file")
+
+# clean it up
+raw_data <- raw_data %>% 
+  mutate(participant_id = str_extract(csv_file, "c\\d+")) %>% 
+  select(-csv_file) %>% 
+  relocate(participant_id)
+```
+
+### Clean data
+We are 
+
+- adding columns for the date, week, weekday, and adds a numeric timestamp (this just as the date as a number - it's probably number of days since 1 jan 1970 or something to that effect! :)  )
+- removing entries that are NA for the RA column
+
+```{r}
+acti_data <- raw_data %>% 
+  mutate(date = date(calender_date),
+         week = isoweek(date),
+         weekday = wday(date, label = TRUE),
+         date_as_number = as.numeric(date),
+         date_time_as_number = as.numeric(calender_date)) %>% 
+  filter(!is.na(RA))
+```
+
+
+So this here below groups by week (a week is Mon-Sun) and participant id and then just get 
+
+
+```{r}
+tRMSSD_calculations <- acti_data %>% 
+  group_by(week, participant_id) %>% 
+  summarise(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~ calc_tRMSSD(.x, date_as_number))) %>% 
+  rename_with(.cols = -c(week, participant_id), ~str_c("tRMSSD_", .)) %>% 
+  arrange(participant_id, week)
+
+write_csv(tRMSSD_calculations, "data/processed/tRMSSD_calculation.csv")
+```
+
 
 
 
