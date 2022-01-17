@@ -43,13 +43,19 @@ calc_tRMSSD <- function(mood_data, timestamp_data){
 
 ## Actigraphy data
 ### Read in data
-```{r}
+```{r, message=FALSE}
 # get the csv files in a named vector
 participant_data <- list.files(path = "data/raw/Actigraphy", pattern = "actigraphy.csv$", full.names = TRUE) %>% 
   set_names()
 
+my_read <- function(filepath){
+  read_csv(filepath, col_types = list(
+    id = col_character()
+  ))
+}
+
 # read them in and put in a data frame
-raw_data <- map_df(participant_data, read_csv, .id = "csv_file")
+raw_data <- map_dfr(participant_data, my_read, .id = "csv_file")
 
 # clean it up
 raw_data <- raw_data %>% 
