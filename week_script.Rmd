@@ -45,7 +45,7 @@ calc_tRMSSD <- function(mood_data, timestamp_data){
 ### Read in data
 ```{r}
 # get the csv files in a named vector
-participant_data <- list.files(path = "data/raw", pattern = "actigraphy.csv$", full.names = TRUE) %>% 
+participant_data <- list.files(path = "data/raw/Actigraphy", pattern = "actigraphy.csv$", full.names = TRUE) %>% 
   set_names()
 
 # read them in and put in a data frame
@@ -86,14 +86,14 @@ tRMSSD_calculations <- acti_data %>%
   rename_with(.cols = -c(week, participant_id), ~str_c("tRMSSD_", .)) %>% 
   arrange(participant_id, week)
 
-write_csv(tRMSSD_calculations, "data/processed/tRMSSD_calculation.csv")
+write_csv(tRMSSD_calculations, "data/processed/tRMSSD_actigraphy.csv")
 ```
 
 ## PANAS
 ### Read in data
 ```{r}
 # get the csv files in a named vector
-participant_data <- list.files(path = "data/raw", pattern = "PANAS.csv$", full.names = TRUE) %>% 
+participant_data <- list.files(path = "data/raw/PANAS", pattern = "PANAS.csv$", full.names = TRUE) %>% 
   set_names()
 
 # read them in and put in a data frame
