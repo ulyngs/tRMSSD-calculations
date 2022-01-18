@@ -101,9 +101,13 @@ tRMSSD_actigraphy <- acti_data %>%
 write_csv(tRMSSD_actigraphy, "data/processed/tRMSSD_actigraphy.csv")
 ```
 
+
+
+
+
 ## PANAS
 ### Read in data
-```{r}
+```{r, message=FALSE}
 # get the csv files in a named vector
 participant_data <- list.files(path = "data/raw/PANAS", pattern = "PANAS.csv$", full.names = TRUE) %>% 
   set_names()
