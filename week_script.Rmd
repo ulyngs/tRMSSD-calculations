@@ -59,10 +59,10 @@ my_read <- function(filepath){
 }
 
 # read them in and put in a data frame
-raw_data <- map_dfr(participant_data, my_read, .id = "csv_file")
+raw_data_acti <- map_dfr(participant_data, my_read, .id = "csv_file")
 
 # clean it up
-raw_data <- raw_data %>% 
+raw_data_acti_clean <- raw_data_acti %>% 
   mutate(participant_id = str_extract(path_file(csv_file), "c\\d+")) %>% 
   select(-csv_file) %>% 
   relocate(participant_id)
@@ -76,7 +76,7 @@ We are
 - removing entries that are NA for the RA column
 
 ```{r}
-acti_data <- raw_data %>% 
+acti_data <- raw_data_acti_clean %>% 
   mutate(calender_date = str_sub(calender_date, 1, -6), # strip away the time zone information
          calender_date = ymd_hms(calender_date),
          date = date(calender_date),
@@ -86,6 +86,7 @@ acti_data <- raw_data %>%
          date_time_as_number = as.numeric(calender_date)) %>% 
   filter(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~!is.na(.))) %>%  # drop rows with no measurements!
   distinct() # drop duplicate rows
+
 ```
 
 
@@ -97,6 +98,8 @@ tRMSSD_actigraphy <- acti_data %>%
   summarise(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~ calc_tRMSSD(.x, date_as_number))) %>%  
   rename_with(.cols = -c(week, participant_id), ~str_c("tRMSSD_", .)) %>% 
   arrange(participant_id, week)
+
+tRMSSD_actigraphy %>% view()
 
 write_csv(tRMSSD_actigraphy, "data/processed/tRMSSD_actigraphy.csv")
 ```
@@ -126,8 +129,12 @@ First we need to give them a study week number - so for all participants, we say
 ```{r}
 tRMSSD_acti_weeks <- tRMSSD_acti_w_group %>% 
   group_by(participant_id) %>% 
-  mutate(study_week = week - min(week) + 1) %>% 
-  filter(study_week <= 10)
+  mutate(study_week = week - min(week) + 1) %>%
+  # filter(study_week <= 10) %>% 
+  relocate(study_week)
+
+tRMSSD_acti_weeks %>% 
+  arrange(participant_id, week) %>% view()
 ```
 
 And NOW we can actually visualise it! Yay!
@@ -241,6 +248,12 @@ tRMSSD_panas <- panas_data %>%
   arrange(participant_id, week)
 
 write_csv(tRMSSD_panas, "data/processed/tRMSSD_panas.csv")
+
+
+tRMSSD_panas
+view(tRMSSD_panas)
+
+
 ```
 
 
