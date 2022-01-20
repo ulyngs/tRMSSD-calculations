@@ -218,15 +218,22 @@ raw_data_panas_clean <- raw_data_panas %>%
 We are 
 
 - adding columns for the date, week, weekday, and adds a numeric timestamp (this just as the date as a number - it's probably number of days since 1 jan 1970 or something to that effect! :)  )
-- removing entries that are NA for the RA column
+- for each participant, we count the number of days from they started, and then the number of corresponding weeks
 
 ```{r}
 panas_data <- raw_data_panas_clean %>% 
   mutate(date_time = str_c(testdate, testtime, sep = " "),
          date_time = dmy_hms(date_time),
-         week = isoweek(date_time),
+         date = date(date_time),
          weekday = wday(date_time, label = TRUE),
-         date_time_as_number = as.numeric(date_time))
+         date_time_as_number = as.numeric(date_time),
+         date_as_number = as.numeric(date)) %>% 
+  group_by(participant_id) %>% 
+  mutate(days_relative_to_first_measurement = date_as_number - min(date_as_number),
+         weeks_count_from_start = floor(days_relative_to_first_measurement / 7) + 1) %>% 
+  select(-c(testdate, testtime)) %>% 
+  relocate(date_time, weekday, weeks_count_from_start)
+
 ```
 
 
@@ -234,17 +241,12 @@ So this here below groups by week (a week is Mon-Sun) and participant id and the
 
 ```{r}
 tRMSSD_panas <- panas_data %>% 
-  group_by(week, participant_id) %>% 
+  group_by(participant_id, weeks_count_from_start) %>% 
   summarise(across(c(pos, neg, sum), ~ calc_tRMSSD(.x, date_time_as_number))) %>% 
-  rename_with(.cols = -c(week, participant_id), ~str_c("tRMSSD_", .)) %>% 
-  arrange(participant_id, week)
+  rename_with(.cols = -c(participant_id, weeks_count_from_start), ~str_c("tRMSSD_", .)) %>% 
+  arrange(participant_id, weeks_count_from_start)
 
 write_csv(tRMSSD_panas, "data/processed/tRMSSD_panas.csv")
-
-
-tRMSSD_panas
-view(tRMSSD_panas)
-
 
 ```
 
@@ -258,26 +260,26 @@ Here's some other stuff you wanted! :)
 ```{r}
 # count number of weeks each participant has data from
 acti_data %>% 
-  distinct(participant_id, week) %>% 
+  distinct(participant_id, weeks_count_from_start) %>% 
   group_by(participant_id) %>% 
   summarise(num_weeks = n())
 
 # count how many entries each participant has within a week
 acti_data %>% 
-  count(participant_id, week)
+  count(participant_id, weeks_count_from_start)
 ```
 
 ## actigraphy data
 ```{r}
 # count number of weeks each participant has data from
 panas_data %>% 
-  distinct(participant_id, week) %>% 
+  distinct(participant_id, weeks_count_from_start) %>% 
   group_by(participant_id) %>% 
   summarise(num_weeks = n())
 
 # count how many entries each participant has within a week
 panas_data %>% 
-  count(participant_id, week)
+  count(participant_id, weeks_count_from_start)
 ```
 
 # Take a look at files
