@@ -126,17 +126,12 @@ tRMSSD_acti_w_group <- tRMSSD_actigraphy %>%
 
 
 #### Visualise the shit out of it
-First we need to give them a study week number - so for all participants, we say that their first week is week 1, and then we just count from there. So everyone's scores a within a period of 10 weeks.
+We exclude weeks after weeek 10
 
 ```{r}
 tRMSSD_acti_weeks <- tRMSSD_acti_w_group %>% 
-  group_by(participant_id) %>% 
-  mutate(study_week = week - min(week) + 1) %>%
-  # filter(study_week <= 10) %>% 
-  relocate(study_week)
-
-tRMSSD_acti_weeks %>% 
-  arrange(participant_id, week) %>% view()
+  filter(weeks_count_from_start <= 10) %>% 
+  mutate(weeks_count_from_start = factor(weeks_count_from_start))
 ```
 
 And NOW we can actually visualise it! Yay!
@@ -146,9 +141,8 @@ And NOW we can actually visualise it! Yay!
 
 ```{r}
 tRMSSD_acti_weeks %>% 
-  mutate(study_week = factor(study_week)) %>% 
   ggplot() +
-    aes(x = study_week, y = tRMSSD_RA, color = Group) +
+    aes(x = weeks_count_from_start, y = tRMSSD_RA, color = Group) +
     geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
     geom_line(aes(group = participant_id))
 ```
@@ -159,16 +153,13 @@ We need a wrangling step first
 
 ```{r}
 tRMSSD_acti_long <- tRMSSD_acti_weeks %>% 
-  select(-week) %>% 
-  relocate(participant_id, Group, study_week) %>% 
-  pivot_longer(-c(participant_id, Group, study_week)) %>% 
+  pivot_longer(-c(participant_id, Group, weeks_count_from_start)) %>% 
   rename(measure = name) %>% 
-  mutate(measure = str_remove(measure, "tRMSSD_")) %>% 
-  mutate(study_week = factor(study_week))
+  mutate(measure = str_remove(measure, "tRMSSD_"))
 
 tRMSSD_acti_long %>% 
   ggplot() +
-    aes(x = study_week, y = value, color = Group) +
+    aes(x = weeks_count_from_start, y = value, color = Group) +
     geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
     geom_line(aes(group = participant_id)) +
     facet_wrap(~measure, scales = "free")
@@ -178,13 +169,13 @@ tRMSSD_acti_long %>%
 
 ```{r}
 tRMSSD_aves <- tRMSSD_acti_long %>% 
-  group_by(Group, study_week, measure) %>% 
+  group_by(Group, weeks_count_from_start, measure) %>% 
   summarise(ave_tRMSSD = mean(value, na.rm = TRUE))
   
 
 tRMSSD_aves %>% 
   ggplot() +
-    aes(x = study_week, y = ave_tRMSSD, color = Group) +
+    aes(x = weeks_count_from_start, y = ave_tRMSSD, color = Group) +
     geom_point(height = 0, width = 0.1, alpha = 0.5) +
     geom_line(aes(group = Group)) +
     facet_wrap(~measure, scales = "free")
@@ -197,9 +188,8 @@ TODO: this should have some sort of visualisation of the spread around the mean
 #### Naive line graph w facets
 ```{r}
 tRMSSD_acti_weeks %>% 
-  mutate(study_week = factor(study_week)) %>% 
   ggplot() +
-    aes(x = study_week, y = tRMSSD_RA, color = participant_id) +
+    aes(x = weeks_count_from_start, y = tRMSSD_RA, color = participant_id) +
     geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
     geom_line(aes(group = participant_id)) +
     facet_wrap(~Group)
