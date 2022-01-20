@@ -201,14 +201,14 @@ tRMSSD_acti_weeks %>%
 ### Read in data
 ```{r, message=FALSE}
 # get the csv files in a named vector
-participant_data <- list.files(path = "data/raw/PANAS", pattern = "PANAS.csv$", full.names = TRUE) %>% 
+participant_data_panas <- list.files(path = "data/raw/PANAS", pattern = "PANAS.csv$", full.names = TRUE) %>% 
   set_names()
 
 # read them in and put in a data frame
-raw_data <- map_df(participant_data, read_csv, .id = "csv_file")
+raw_data_panas <- map_df(participant_data_panas, read_csv, .id = "csv_file")
 
 # clean it up
-raw_data <- raw_data %>% 
+raw_data_panas_clean <- raw_data_panas %>% 
   mutate(participant_id = str_extract(path_file(csv_file), "c\\d+")) %>% 
   select(-csv_file) %>% 
   relocate(participant_id)
@@ -221,7 +221,7 @@ We are
 - removing entries that are NA for the RA column
 
 ```{r}
-panas_data <- raw_data %>% 
+panas_data <- raw_data_panas_clean %>% 
   mutate(date_time = str_c(testdate, testtime, sep = " "),
          date_time = dmy_hms(date_time),
          week = isoweek(date_time),
