@@ -105,6 +105,20 @@ tRMSSD_actigraphy <- acti_data %>%
 
 write_csv(tRMSSD_actigraphy, "data/processed/tRMSSD_actigraphy.csv")
 ```
+Make it long!
+
+```{r}
+tRMSSD_panas_w_group <- tRMSSD_panas %>% 
+  left_join(condition_info) %>% 
+  filter(!is.na(Group)) 
+
+
+wide_scores_panas <- tRMSSD_panas_w_group %>% 
+  filter(weeks_count_from_start <= 10) %>% 
+  pivot_wider(names_from = weeks_count_from_start, values_from = c(tRMSSD_pos, tRMSSD_neg, tRMSSD_sum))
+
+write_csv(wide_scores_panas, "data/processed/wide_scores_panas.csv")
+```
 
 ### Visualise data
 #### Join the group information
@@ -259,9 +273,11 @@ tRMSSD_panas_w_group <- tRMSSD_panas %>%
   filter(!is.na(Group)) 
 
 
-tRMSSD_panas_w_group %>% 
+wide_scores_panas <- tRMSSD_panas_w_group %>% 
   filter(weeks_count_from_start <= 10) %>% 
   pivot_wider(names_from = weeks_count_from_start, values_from = c(tRMSSD_pos, tRMSSD_neg, tRMSSD_sum))
+
+write_csv(wide_scores_panas, "data/processed/wide_scores_panas.csv")
 
 ```
 
