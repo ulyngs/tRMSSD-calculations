@@ -297,7 +297,7 @@ tRMSSD_panas_participant_overall <- panas_data %>%
   rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_", .)) %>% 
   arrange(participant_id)
 
-write_csv(tRMSSD_actigraphy_participant_overall, "data/processed/tRMSSD_panas_by_participant.csv")
+write_csv(tRMSSD_panas_participant_overall, "data/processed/tRMSSD_panas_by_participant.csv")
 ```
 
 ### Visualise PANAS data
