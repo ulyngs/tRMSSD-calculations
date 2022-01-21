@@ -120,7 +120,7 @@ wide_scores_acti <- tRMSSD_acti_w_group %>%
 write_csv(wide_scores_acti, "data/processed/wide_scores_acti.csv")
 ```
 
-### Visualise data
+### Visualise actigraphy data
 #### Join the group information
 
 So in order to do this we want the information about the condition they were in! Yay!
@@ -279,6 +279,95 @@ wide_scores_panas <- tRMSSD_panas_w_group %>%
 
 write_csv(wide_scores_panas, "data/processed/wide_scores_panas.csv")
 
+```
+
+### Visualise PANAS data
+#### Join the group information
+
+So in order to do this we want the information about the condition they were in! Yay!
+
+We join with their group and then we drop the ones who don't have a group (there's like 4 of them - these are ppl who dropped out or were otherwise excluded)
+
+```{r}
+condition_info <- read_csv("data/COMET_group_panas.csv") %>% 
+  select(-`Participant ID`) %>% 
+  mutate(Group = if_else(Group == 2, "low MDQ", "high MDQ")) %>% 
+  rename(participant_id = ID)
+
+tRMSSD_panas_w_group <- tRMSSD_panas %>% 
+  left_join(condition_info) %>% 
+  filter(!is.na(Group)) 
+```
+
+
+#### Visualise the shit out of it
+We exclude weeks after week 10
+
+```{r}
+tRMSSD_panas_weeks <- tRMSSD_panas_w_group %>% 
+  filter(weeks_count_from_start <= 10) %>% 
+  mutate(weeks_count_from_start = factor(weeks_count_from_start))
+```
+
+And NOW we can actually visualise it! Yay!
+
+
+#### Naive line graph across EVERYTHING for panas pos
+
+```{r}
+tRMSSD_panas_weeks %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = tRMSSD_pos, color = Group) +
+    geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = participant_id))
+```
+
+Let's make a similar one where we have facets for each of the measures.
+
+We need a wrangling step first
+
+```{r}
+tRMSSD_panas_long <- tRMSSD_panas_weeks %>% 
+  pivot_longer(-c(participant_id, Group, weeks_count_from_start)) %>% 
+  rename(measure = name) %>% 
+  mutate(measure = str_remove(measure, "tRMSSD_"))
+
+tRMSSD_panas_long %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = value, color = Group) +
+    geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = participant_id)) +
+    facet_wrap(~measure, scales = "free")
+```
+
+#### do the averages
+
+```{r}
+tRMSSD_panas_aves <- tRMSSD_panas_long %>% 
+  group_by(Group, weeks_count_from_start, measure) %>% 
+  summarise(ave_tRMSSD = mean(value, na.rm = TRUE))
+  
+
+tRMSSD_panas_aves %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = ave_tRMSSD, color = Group) +
+    geom_point(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = Group)) +
+    facet_wrap(~measure, scales = "free")
+```
+
+TODO: this should have some sort of visualisation of the spread around the mean
+
+
+
+#### Naive line graph w facets
+```{r}
+tRMSSD_panas_weeks %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = tRMSSD_pos, color = participant_id) +
+    geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = participant_id)) +
+    facet_wrap(~Group)
 ```
 
 
