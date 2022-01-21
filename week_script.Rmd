@@ -105,20 +105,6 @@ tRMSSD_actigraphy <- acti_data %>%
 
 write_csv(tRMSSD_actigraphy, "data/processed/tRMSSD_actigraphy.csv")
 ```
-Make it long!
-
-```{r}
-tRMSSD_acti_w_group <- tRMSSD_actigraphy %>% 
-  left_join(condition_info) %>% 
-  filter(!is.na(Group)) 
-
-
-wide_scores_acti <- tRMSSD_acti_w_group %>% 
-  filter(weeks_count_from_start <= 10) %>% 
-  pivot_wider(names_from = weeks_count_from_start, values_from = c(tRMSSD_L5_onset, tRMSSD_L5_activity, tRMSSD_M10_onset, tRMSSD_M10_activity, tRMSSD_RA))
-
-write_csv(wide_scores_acti, "data/processed/wide_scores_acti.csv")
-```
 
 ### Visualise actigraphy data
 #### Join the group information
@@ -128,16 +114,30 @@ So in order to do this we want the information about the condition they were in!
 We join with their group and then we drop the ones who don't have a group (there's like 4 of them - these are ppl who dropped out or were otherwise excluded)
 
 ```{r}
-condition_info <- read_csv("data/COMET_group.csv") %>% 
+condition_info_acti <- read_csv("data/COMET_group_acti.csv") %>% 
   select(-`Participant ID`) %>% 
   mutate(Group = if_else(Group == 2, "low MDQ", "high MDQ")) %>% 
   rename(participant_id = ID)
 
 tRMSSD_acti_w_group <- tRMSSD_actigraphy %>% 
-  left_join(condition_info) %>% 
+  left_join(condition_info_acti) %>% 
   filter(!is.na(Group)) 
 ```
 
+#### Make it long!
+
+```{r}
+tRMSSD_acti_w_group <- tRMSSD_actigraphy %>% 
+  left_join(condition_info_acti) %>% 
+  filter(!is.na(Group)) 
+
+
+wide_scores_acti <- tRMSSD_acti_w_group %>% 
+  filter(weeks_count_from_start <= 10) %>% 
+  pivot_wider(names_from = weeks_count_from_start, values_from = c(tRMSSD_L5_onset, tRMSSD_L5_activity, tRMSSD_M10_onset, tRMSSD_M10_activity, tRMSSD_RA))
+
+write_csv(wide_scores_acti, "data/processed/wide_scores_acti.csv")
+```
 
 #### Visualise the shit out of it
 We exclude weeks after weeek 10
@@ -264,12 +264,29 @@ write_csv(tRMSSD_panas, "data/processed/tRMSSD_panas.csv")
 
 ```
 
+### Visualise PANAS data
+#### Join the group information
 
-Make it long!
+So in order to do this we want the information about the condition they were in! Yay!
+
+We join with their group and then we drop the ones who don't have a group (there's like 4 of them - these are ppl who dropped out or were otherwise excluded)
+
+```{r}
+condition_info_panas <- read_csv("data/COMET_group_panas.csv") %>% 
+  select(-`Participant ID`) %>% 
+  mutate(Group = if_else(Group == 2, "low MDQ", "high MDQ")) %>% 
+  rename(participant_id = ID)
+
+tRMSSD_panas_w_group <- tRMSSD_panas %>% 
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) 
+```
+
+#### Make it long!
 
 ```{r}
 tRMSSD_panas_w_group <- tRMSSD_panas %>% 
-  left_join(condition_info) %>% 
+  left_join(condition_info_panas) %>% 
   filter(!is.na(Group)) 
 
 
@@ -280,25 +297,6 @@ wide_scores_panas <- tRMSSD_panas_w_group %>%
 write_csv(wide_scores_panas, "data/processed/wide_scores_panas.csv")
 
 ```
-
-### Visualise PANAS data
-#### Join the group information
-
-So in order to do this we want the information about the condition they were in! Yay!
-
-We join with their group and then we drop the ones who don't have a group (there's like 4 of them - these are ppl who dropped out or were otherwise excluded)
-
-```{r}
-condition_info <- read_csv("data/COMET_group_panas.csv") %>% 
-  select(-`Participant ID`) %>% 
-  mutate(Group = if_else(Group == 2, "low MDQ", "high MDQ")) %>% 
-  rename(participant_id = ID)
-
-tRMSSD_panas_w_group <- tRMSSD_panas %>% 
-  left_join(condition_info) %>% 
-  filter(!is.na(Group)) 
-```
-
 
 #### Visualise the shit out of it
 We exclude weeks after week 10
@@ -340,20 +338,29 @@ tRMSSD_panas_long %>%
     facet_wrap(~measure, scales = "free")
 ```
 
-#### do the averages
+#### do the averages (with standard error of the mean)
 
 ```{r}
 tRMSSD_panas_aves <- tRMSSD_panas_long %>% 
   group_by(Group, weeks_count_from_start, measure) %>% 
-  summarise(ave_tRMSSD = mean(value, na.rm = TRUE))
+  summarise(ave_tRMSSD = mean(value, na.rm = TRUE),
+            sd_tRMSSD = sd(value, na.rm = TRUE),
+            se_tRMSSD = sd_tRMSSD/sqrt(n()))
   
 
-tRMSSD_panas_aves %>% 
+tRMSSD_panas_plot <- tRMSSD_panas_aves %>% 
+  filter(measure != "sum") %>% 
   ggplot() +
     aes(x = weeks_count_from_start, y = ave_tRMSSD, color = Group) +
     geom_point(height = 0, width = 0.1, alpha = 0.5) +
-    geom_line(aes(group = Group)) +
-    facet_wrap(~measure, scales = "free")
+    geom_line(aes(group = Group)) + 
+    geom_errorbar(aes(ymin = ave_tRMSSD - se_tRMSSD, ymax = ave_tRMSSD + se_tRMSSD), width = 0.5, alpha = 0.8) + 
+    facet_wrap(~measure, scales = "free") +
+    theme_minimal() +
+    labs(title = "Variability in PANAS scores across weeks", x = "Week number", y = "Mean tRMSSD")
+
+
+ggsave(plot = tRMSSD_panas_plot, "tRMSSD_panas_plot.png", height = 4, width = 7)
 ```
 
 TODO: this should have some sort of visualisation of the spread around the mean
