@@ -264,8 +264,10 @@ panas_data <- raw_data_panas_clean %>%
 
 ```
 
+### Calculate tRMSSD
+#### By participant and week
+So this here below groups by week (a week is Mon-Sun) and participant id and then just calculates the tRMSSD 
 
-So this here below groups by week (a week is Mon-Sun) and participant id and then just get 
 
 ```{r}
 tRMSSD_panas <- panas_data %>% 
@@ -276,6 +278,18 @@ tRMSSD_panas <- panas_data %>%
 
 write_csv(tRMSSD_panas, "data/processed/tRMSSD_panas.csv")
 
+```
+#### By participant only
+
+
+```{r}
+tRMSSD_panas_participant_overall <- panas_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(pos, neg, sum), ~ calc_tRMSSD(.x, date_as_number))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_", .)) %>% 
+  arrange(participant_id)
+
+write_csv(tRMSSD_actigraphy_participant_overall, "data/processed/tRMSSD_panas_by_participant.csv")
 ```
 
 ### Visualise PANAS data
