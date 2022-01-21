@@ -193,23 +193,31 @@ tRMSSD_acti_long %>%
     facet_wrap(~measure, scales = "free")
 ```
 
-#### do the averages
+#### do the averages (with standard error of the mean)
 
 ```{r}
-tRMSSD_aves <- tRMSSD_acti_long %>% 
+tRMSSD_acti_aves <- tRMSSD_acti_long %>% 
   group_by(Group, weeks_count_from_start, measure) %>% 
-  summarise(ave_tRMSSD = mean(value, na.rm = TRUE))
+  summarise(ave_tRMSSD = mean(value, na.rm = TRUE),
+            sd_tRMSSD = sd(value, na.rm = TRUE),
+            se_tRMSSD = sd_tRMSSD/sqrt(n()))
   
 
-tRMSSD_aves %>% 
+tRMSSD_acti_plot <- tRMSSD_acti_aves %>% 
   ggplot() +
     aes(x = weeks_count_from_start, y = ave_tRMSSD, color = Group) +
     geom_point(height = 0, width = 0.1, alpha = 0.5) +
     geom_line(aes(group = Group)) +
+    geom_errorbar(aes(ymin = ave_tRMSSD - se_tRMSSD, ymax = ave_tRMSSD + se_tRMSSD), width = 0.5, alpha = 0.8) +
     facet_wrap(~measure, scales = "free")
-```
+    theme_minimal() +
+    labs(title = "Variability in Actigraphy scores across weeks", x = "Week number", y = "Mean tRMSSD") 
 
-TODO: this should have some sort of visualisation of the spread around the mean
+
+ggsave(plot = tRMSSD_acti_plot, "tRMSSD_acti_plot.png", height = 5, width = 8) 
+
+  
+```
 
 
 
