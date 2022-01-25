@@ -309,7 +309,8 @@ So in order to do this we want the information about the condition they were in!
 We join with their group and then we drop the ones who don't have a group (there's like 4 of them - these are ppl who dropped out or were otherwise excluded)
 
 ```{r}
-condition_info_panas <- read_csv("data/COMET_group_panas.csv") %>% 
+condition_info_panas <- read_csv("data/COMET_group_panas.csv") %>% #this condition/group file excludes c15 outlier
+#condition_info_panas <- read_csv("data/COMET_group.csv") %>% #this condition/group file includes c15 outlier
   select(-`Participant ID`) %>% 
   mutate(Group = if_else(Group == 2, "low MDQ", "high MDQ")) %>% 
   rename(participant_id = ID)
@@ -433,7 +434,7 @@ acti_data %>%
   count(participant_id, weeks_count_from_start)
 ```
 
-## actigraphy data
+## panas data
 ```{r}
 # count number of weeks each participant has data from
 panas_data %>% 
