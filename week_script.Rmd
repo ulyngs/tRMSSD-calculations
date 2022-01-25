@@ -209,11 +209,12 @@ tRMSSD_acti_plot <- tRMSSD_acti_aves %>%
     geom_point(height = 0, width = 0.1, alpha = 0.5) +
     geom_line(aes(group = Group)) +
     geom_errorbar(aes(ymin = ave_tRMSSD - se_tRMSSD, ymax = ave_tRMSSD + se_tRMSSD), width = 0.5, alpha = 0.8) +
-    facet_wrap(~measure, scales = "free")
+    facet_wrap(~measure, scales = "free") +
     theme_minimal() +
     labs(title = "Variability in Actigraphy scores across weeks", x = "Week number", y = "Mean tRMSSD") 
 
-
+tRMSSD_acti_plot
+    
 ggsave(plot = tRMSSD_acti_plot, "tRMSSD_acti_plot.png", height = 5, width = 8) 
 
   
@@ -395,6 +396,7 @@ tRMSSD_panas_plot <- tRMSSD_panas_aves %>%
     theme_minimal() +
     labs(title = "Variability in PANAS scores across weeks", x = "Week number", y = "Mean tRMSSD")
 
+tRMSSD_panas_plot
 
 ggsave(plot = tRMSSD_panas_plot, "tRMSSD_panas_plot.png", height = 4, width = 7)
 ```
