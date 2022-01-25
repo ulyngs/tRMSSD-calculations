@@ -91,6 +91,7 @@ acti_data <- raw_data_acti_clean %>%
   distinct() %>% # drop duplicate rows
   relocate(weeks_count_from_start, calender_date, date, weekday)
 
+
 ```
 
 ### Calculate tRMSSD
@@ -118,6 +119,29 @@ tRMSSD_actigraphy_participant_overall <- acti_data %>%
 write_csv(tRMSSD_actigraphy_participant_overall, "data/processed/tRMSSD_actigraphy_by_participant.csv")
 ```
 
+### Calculate averages
+#### By participant and week
+
+```{r}
+mean_actigraphy <- acti_data %>% 
+  group_by(participant_id, weeks_count_from_start) %>% 
+  summarise(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~ mean(.x, na.rm = TRUE))) %>%  
+  rename_with(.cols = -c(participant_id, weeks_count_from_start), ~str_c("average_", .)) %>% 
+  arrange(participant_id, weeks_count_from_start)
+
+write_csv(mean_actigraphy, "data/processed/mean_actigraphy.csv")
+```
+
+#### By participant only
+```{r}
+mean_actigraphy_participant_overall <- acti_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(L5_onset, L5_activity, M10_onset, M10_activity, RA), ~ mean(.x, na.rm = TRUE))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("average_", .)) %>% 
+  arrange(participant_id)
+
+write_csv(mean_actigraphy_participant_overall, "data/processed/mean_actigraphy_by_participant.csv")
+```
 
 
 ### Visualise actigraphy data
