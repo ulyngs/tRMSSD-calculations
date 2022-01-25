@@ -449,7 +449,6 @@ panas_data <- raw_data_panas_clean %>%
 #### By participant and week
 So this here below groups by week (a week is Mon-Sun) and participant id and then just calculates the tRMSSD 
 
-
 ```{r}
 tRMSSD_panas <- panas_data %>% 
   group_by(participant_id, weeks_count_from_start) %>% 
@@ -457,12 +456,12 @@ tRMSSD_panas <- panas_data %>%
   rename_with(.cols = -c(participant_id, weeks_count_from_start), ~str_c("tRMSSD_", .)) %>% 
   arrange(participant_id, weeks_count_from_start)
 
+tRMSSD_panas
+
 write_csv(tRMSSD_panas, "data/processed/tRMSSD_panas.csv")
 
 ```
 #### By participant only
-
-
 ```{r}
 tRMSSD_panas_participant_overall <- panas_data %>% 
   group_by(participant_id) %>% 
@@ -474,6 +473,32 @@ tRMSSD_panas_participant_overall
 
 write_csv(tRMSSD_panas_participant_overall, "data/processed/tRMSSD_panas_by_participant.csv")
 ```
+
+### Calculate averages
+#### By participant and week
+```{r}
+mean_panas <- panas_data %>% 
+  group_by(participant_id, weeks_count_from_start) %>% 
+  summarise(across(c(pos, neg, sum), ~ mean(.x, na.rm = TRUE))) %>%  
+  rename_with(.cols = -c(participant_id, weeks_count_from_start), ~str_c("average_", .)) %>% 
+  arrange(participant_id, weeks_count_from_start)
+
+write_csv(mean_panas, "data/processed/mean_panas.csv")
+```
+
+#### By participant only
+```{r}
+mean_panas_participant_overall <- panas_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(pos, neg, sum), ~ mean(.x, na.rm = TRUE))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("average_", .)) %>% 
+  arrange(participant_id)
+
+mean_panas_participant_overall
+
+write_csv(mean_panas_participant_overall, "data/processed/mean_panas_by_participant.csv")
+```
+
 
 ### Visualise PANAS data
 #### Join the group information
