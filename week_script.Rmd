@@ -374,7 +374,7 @@ mean_acti_weeks %>%
     facet_wrap(~Group)
 ```
 
-#### Boxplot for overall tRMSSD
+#### Boxplot for overall mean
 ```{r}
 
 mean_acti_overall_w_group <- mean_actigraphy_participant_overall %>% #join group info
@@ -517,6 +517,12 @@ condition_info_panas <- read_csv("data/COMET_group_panas.csv") %>% #this conditi
 tRMSSD_panas_w_group <- tRMSSD_panas %>% 
   left_join(condition_info_panas) %>% 
   filter(!is.na(Group)) 
+
+mean_panas_w_group <- mean_panas %>% 
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) 
+
+
 ```
 
 #### Make it long!
@@ -533,6 +539,15 @@ wide_scores_panas <- tRMSSD_panas_w_group %>%
 
 write_csv(wide_scores_panas, "data/processed/wide_scores_panas.csv")
 
+#Same now for averages:
+wide_scores_mean_panas <- mean_panas_w_group %>% 
+  filter(weeks_count_from_start <= 10) %>% 
+  pivot_wider(names_from = weeks_count_from_start, values_from = c(average_pos, average_neg, average_sum))
+
+wide_scores_mean_panas
+
+write_csv(wide_scores_mean_panas, "data/processed/wide_scores_mean_panas.csv")
+
 ```
 
 #### Visualise the shit out of it
@@ -542,10 +557,16 @@ We exclude weeks after week 10
 tRMSSD_panas_weeks <- tRMSSD_panas_w_group %>% 
   filter(weeks_count_from_start <= 10) %>% 
   mutate(weeks_count_from_start = factor(weeks_count_from_start))
+
+#Same now for averages:
+mean_panas_weeks <- mean_panas_w_group %>% 
+  filter(weeks_count_from_start <= 10) %>% 
+  mutate(weeks_count_from_start = factor(weeks_count_from_start))
 ```
 
 And NOW we can actually visualise it! Yay!
 
+### Visualise tRMSSD panas data
 
 #### Naive line graph across EVERYTHING for panas pos
 
@@ -644,6 +665,106 @@ ggsave(plot = tRMSSD_panas_box_plot, "tRMSSD_panas_box_plot.png", height = 4, wi
   
   
 ```
+
+### Visualise mean panas data
+
+#### Naive line graph across EVERYTHING for RA
+
+```{r}
+mean_panas_weeks %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = average_pos, color = Group) +
+    geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = participant_id))
+```
+
+Let's make a similar one where we have facets for each of the measures.
+
+We need a wrangling step first
+
+```{r}
+mean_panas_long <- mean_panas_weeks %>% 
+  pivot_longer(-c(participant_id, Group, weeks_count_from_start)) %>% 
+  rename(measure = name) %>% 
+  mutate(measure = str_remove(measure, "average_"))
+
+mean_panas_long %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = value, color = Group) +
+    geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = participant_id)) +
+    facet_wrap(~measure, scales = "free")
+```
+
+#### do the averages across participants (with standard error of the mean)
+
+```{r}
+mean_panas_aves <- mean_panas_long %>% 
+  group_by(Group, weeks_count_from_start, measure) %>% 
+  summarise(ave_mean = mean(value, na.rm = TRUE),
+            sd_mean = sd(value, na.rm = TRUE),
+            se_mean = sd_mean/sqrt(n()))
+  
+
+mean_panas_plot <- mean_panas_aves %>% 
+  filter(measure != "sum") %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = ave_mean, color = Group) +
+    geom_point(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = Group)) +
+    geom_errorbar(aes(ymin = ave_mean - se_mean, ymax = ave_mean + se_mean), width = 0.5, alpha = 0.8) +
+    facet_wrap(~measure, scales = "free") +
+    theme_minimal() +
+    labs(title = "Absolute PANAS scores across weeks", x = "Week number", y = "Mean PANAS") 
+
+mean_panas_plot
+    
+ggsave(plot = mean_panas_plot, "mean_panas_plot.png", height = 5, width = 8) 
+
+  
+```
+
+#### Naive line graph w facets
+```{r}
+mean_panas_weeks %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = average_pos, color = participant_id) +
+    geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = participant_id)) +
+    facet_wrap(~Group)
+```
+
+#### Boxplot for overall mean
+```{r}
+
+mean_panas_overall_w_group <- mean_panas_participant_overall %>% #join group info
+  left_join(condition_info_acti) %>% 
+  filter(!is.na(Group)) 
+
+mean_panas_overall_long <- mean_panas_overall_w_group %>% #data wrangling - make long version of overall mean acti 
+  pivot_longer(-c(participant_id, Group)) %>% 
+  rename(measure = name) %>% 
+  mutate(measure = str_remove(measure, "average_"))
+
+mean_panas_overall_w_group
+mean_panas_overall_long
+
+mean_panas_box_plot <- mean_panas_overall_long %>%
+  filter(measure != "sum") %>% 
+  ggplot() +
+    aes(x = measure, y = value, fill = Group) +
+    geom_boxplot(lwd=0.7, width=1.4, outlier.color = NA) +
+    scale_y_continuous(breaks = seq(0, 15, 1), limits = c(0, 15)) +
+    theme_minimal() +
+    #facet_wrap(~measure, scales = "free") +
+    labs(title = "Overall average PANAS", x = "PANAS", y = "Mean")
+  
+mean_panas_box_plot
+
+ggsave(plot = mean_panas_box_plot, "mean_panas_box_plot.png", height = 4, width = 7)
+  
+```
+
 
 # Other stuff
 Here's some other stuff you wanted! :)
