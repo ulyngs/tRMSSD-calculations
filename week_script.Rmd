@@ -173,10 +173,10 @@ tRMSSD_acti_w_group <- tRMSSD_actigraphy %>%
   left_join(condition_info_acti) %>% 
   filter(!is.na(Group)) 
 
-
 wide_scores_acti <- tRMSSD_acti_w_group %>% 
   filter(weeks_count_from_start <= 10) %>% 
   pivot_wider(names_from = weeks_count_from_start, values_from = c(tRMSSD_L5_onset, tRMSSD_L5_activity, tRMSSD_M10_onset, tRMSSD_M10_activity, tRMSSD_RA))
+
 
 write_csv(wide_scores_acti, "data/processed/wide_scores_acti.csv")
 
@@ -795,7 +795,7 @@ panas_data %>%
   count(participant_id, weeks_count_from_start)
 ```
 
-# Take a look at files
+## Take a look at files
 
 ```{r}
 
@@ -804,4 +804,29 @@ view(tRMSSD_actigraphy)
 
 
 ```
+
+## Join by participant files together for LMMs
+
+```{r}
+all_data_participant <- cbind(mean_actigraphy_participant_overall, tRMSSD_actigraphy_participant_overall, mean_panas_participant_overall, tRMSSD_panas_participant_overall)
+
+all_data_participant
+tRMSSD_acti_w_group
+
+
+
+tRMSSD_acti_lmm <- tRMSSD_acti_w_group %>%
+  filter(weeks_count_from_start <= 10)
+
+write_csv(tRMSSD_acti_lmm, "data/processed/tRMSSD_acti_lmm.csv")
+
+mean_acti_lmm <- mean_acti_w_group %>%
+  filter(weeks_count_from_start <= 10)
+
+tRMSSD_panas_lmm <- tRMSSD_panas_w_group %>%
+  filter(weeks_count_from_start <= 10)
+
+meanpanas_lmm <- mean_panas_w_group %>%
+  filter(weeks_count_from_start <= 10)
+
 
