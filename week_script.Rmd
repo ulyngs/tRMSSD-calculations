@@ -805,28 +805,49 @@ view(tRMSSD_actigraphy)
 
 ```
 
-## Join by participant files together for LMMs
+## Join all week data together for LMMs
 
 ```{r}
-all_data_participant <- cbind(mean_actigraphy_participant_overall, tRMSSD_actigraphy_participant_overall, mean_panas_participant_overall, tRMSSD_panas_participant_overall)
+#all_data_participant <- cbind(mean_actigraphy_participant_overall, tRMSSD_actigraphy_participant_overall, mean_panas_participant_overall, tRMSSD_panas_participant_overall)
 
-all_data_participant
-tRMSSD_acti_w_group
+#all_data_participant
+#tRMSSD_acti_w_group
 
 
 
 tRMSSD_acti_lmm <- tRMSSD_acti_w_group %>%
   filter(weeks_count_from_start <= 10)
-
-write_csv(tRMSSD_acti_lmm, "data/processed/tRMSSD_acti_lmm.csv")
+#write_csv(tRMSSD_acti_lmm, "data/processed/tRMSSD_acti_lmm.csv")
 
 mean_acti_lmm <- mean_acti_w_group %>%
   filter(weeks_count_from_start <= 10)
+#write_csv(mean_acti_lmm, "data/processed/mean_acti_lmm.csv")
 
-tRMSSD_panas_lmm <- tRMSSD_panas_w_group %>%
+
+
+
+tRMSSD_panas_w_group_acti <- tRMSSD_panas %>% # want to add acti group here to make same length 
+  left_join(condition_info_acti) %>% 
+  filter(!is.na(Group)) 
+
+mean_panas_w_group_acti <- mean_panas %>% # want to add acti group here to make same length 
+  left_join(condition_info_acti) %>% 
+  filter(!is.na(Group)) 
+
+
+
+
+tRMSSD_panas_lmm <- tRMSSD_panas_w_group_acti %>%
   filter(weeks_count_from_start <= 10)
+#write_csv(tRMSSD_panas_lmm, "data/processed/tRMSSD_panas_lmm.csv")
 
-meanpanas_lmm <- mean_panas_w_group %>%
+mean_panas_lmm <- mean_panas_w_group_acti %>%
   filter(weeks_count_from_start <= 10)
+#write_csv(mean_panas_lmm, "data/processed/mean_panas_lmm.csv")
 
+all_week_data_acti <- cbind(mean_acti_lmm, tRMSSD_acti_lmm)
+write_csv(all_week_data_acti, "data/processed/all_week_data_acti.csv") 
 
+all_week_data_panas <- cbind(mean_panas_lmm, tRMSSD_panas_lmm)
+write_csv(all_week_data_panas, "data/processed/all_week_data_panas.csv") 
+```
