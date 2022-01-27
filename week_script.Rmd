@@ -807,6 +807,7 @@ true_colours_data <- raw_data_true_colours_clean %>%
 view(true_colours_data)
 
 
+
 ```
 
 
@@ -855,16 +856,9 @@ view(tRMSSD_actigraphy)
 
 ```
 
-## Join all week data together for LMMs
+# Join all week data together for LMMs
 
 ```{r}
-#all_data_participant <- cbind(mean_actigraphy_participant_overall, tRMSSD_actigraphy_participant_overall, mean_panas_participant_overall, tRMSSD_panas_participant_overall)
-
-#all_data_participant
-#tRMSSD_acti_w_group
-
-
-
 tRMSSD_acti_lmm <- tRMSSD_acti_w_group %>%
   filter(weeks_count_from_start <= 10)
 #write_csv(tRMSSD_acti_lmm, "data/processed/tRMSSD_acti_lmm.csv")
@@ -875,7 +869,6 @@ mean_acti_lmm <- mean_acti_w_group %>%
 
 
 
-
 tRMSSD_panas_w_group_acti <- tRMSSD_panas %>% # want to add acti group here to make same length 
   left_join(condition_info_acti) %>% 
   filter(!is.na(Group)) 
@@ -883,9 +876,6 @@ tRMSSD_panas_w_group_acti <- tRMSSD_panas %>% # want to add acti group here to m
 mean_panas_w_group_acti <- mean_panas %>% # want to add acti group here to make same length 
   left_join(condition_info_acti) %>% 
   filter(!is.na(Group)) 
-
-
-
 
 tRMSSD_panas_lmm <- tRMSSD_panas_w_group_acti %>%
   filter(weeks_count_from_start <= 10)
