@@ -532,7 +532,6 @@ tRMSSD_panas_w_group <- tRMSSD_panas %>%
   left_join(condition_info_panas) %>% 
   filter(!is.na(Group)) 
 
-
 wide_scores_panas <- tRMSSD_panas_w_group %>% 
   filter(weeks_count_from_start <= 10) %>% 
   pivot_wider(names_from = weeks_count_from_start, values_from = c(tRMSSD_pos, tRMSSD_neg, tRMSSD_sum))
@@ -764,6 +763,40 @@ mean_panas_box_plot
 ggsave(plot = mean_panas_box_plot, "mean_panas_box_plot.png", height = 4, width = 7)
   
 ```
+
+## True Colours
+### Read in data
+```{r, message=FALSE}
+# get the csv files in a named vector
+participant_data_true_colours <- list.files(path = "data/raw/True_Colours", pattern = "true_colours.csv$", full.names = TRUE) %>% 
+  set_names()
+
+# read them in and put in a data frame
+raw_data_true_colours <- map_df(participant_data_true_colours, read_csv, .id = "csv_file")
+
+raw_data_true_colours
+
+# clean it up
+id_info_true_colours <- read_csv("data/true_colours_id.csv") %>% 
+  select(-`Participant_no`) %>% 
+  rename(participant_id = ID)
+
+id_info_true_colours
+
+raw_data_true_colours_clean <- raw_data_true_colours %>%
+  select(-`csv_file`) %>% 
+  left_join(id_info_true_colours) %>%
+  relocate(participant_id)
+
+view(raw_data_true_colours_clean)
+
+```
+
+
+
+
+
+
 
 
 # Other stuff
