@@ -91,7 +91,6 @@ acti_data <- raw_data_acti_clean %>%
   distinct() %>% # drop duplicate rows
   relocate(weeks_count_from_start, calender_date, date, weekday)
 
-
 ```
 
 ### Calculate tRMSSD
@@ -774,14 +773,14 @@ participant_data_true_colours <- list.files(path = "data/raw/True_Colours", patt
 # read them in and put in a data frame
 raw_data_true_colours <- map_df(participant_data_true_colours, read_csv, .id = "csv_file")
 
-raw_data_true_colours
 
-# clean it up
+```
+
+### Clean data
+```{r, message=FALSE}
 id_info_true_colours <- read_csv("data/true_colours_id.csv") %>% 
   select(-`Participant_no`) %>% 
   rename(participant_id = ID)
-
-id_info_true_colours
 
 raw_data_true_colours_clean <- raw_data_true_colours %>%
   select(-`csv_file`) %>% 
@@ -789,6 +788,24 @@ raw_data_true_colours_clean <- raw_data_true_colours %>%
   relocate(participant_id)
 
 view(raw_data_true_colours_clean)
+
+true_colours_data <- raw_data_true_colours_clean %>%
+  mutate(date_time = str_c(date_time),
+         date_time = ymd_hms(date_time),
+         date = date(date_time),
+         weekday = wday(date_time, label = TRUE),
+         date_time_as_number = as.numeric(date_time),
+         date_as_number = as.numeric(date), 
+         year = year(date)) %>% 
+  group_by(participant_id) %>% 
+  mutate(days_relative_to_first_measurement = date_as_number - min(date_as_number),
+         weeks_count_from_start = floor(days_relative_to_first_measurement / 7) + 1) %>% 
+  filter(across(c(summary), ~!is.na(.))) %>%  # drop rows with no measurements!
+  distinct() %>% # drop duplicate rows
+  relocate(date_time, weekday, weeks_count_from_start)
+
+view(true_colours_data)
+
 
 ```
 
