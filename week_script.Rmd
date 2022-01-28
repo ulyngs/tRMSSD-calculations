@@ -945,6 +945,7 @@ write_csv(mean_gad7_true_colours_participant_overall, "data/processed/mean_gad7_
 
 ```
 
+
 ### Visualise True Colours data
 #### Join the group information
 
@@ -1019,7 +1020,7 @@ ggsave(plot = tRMSSD_true_colours_box_plot, "tRMSSD_true_colours_box_plot.png", 
   
 ```
 
-#### Boxplot for overall tRMSSD
+#### Boxplot for overall mean
 ```{r}
 
 # data wrangling - first join 3 true colours average files together
@@ -1048,7 +1049,25 @@ mean_true_colours_box_plot
 ggsave(plot = mean_true_colours_box_plot, "mean_true_colours_box_plot.png", height = 4, width = 7)
 ```
 
+#### Visualisations across weeks (for average only)
+```{r}
+week_true_colours_data = read.csv("data/weekly_true_colours_data.csv")
 
+#condition_info_panas <- read_csv("data/COMET_group_panas.csv") %>% #this condition/group file excludes c15 variability outlier
+condition_info_true_colours <- read_csv("data/COMET_group.csv") %>% #this condition/group file includes c15 outlier
+  select(-`Participant ID`) %>% 
+  mutate(Group = if_else(Group == 2, "low MDQ", "high MDQ")) %>% 
+  rename(participant_id = ID)
+
+week_true_colours_data_w_group <- week_true_colours_data %>%
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) %>% 
+  relocate(Group)
+
+week_true_colours_data_w_group
+
+
+```
 
 
 
