@@ -995,7 +995,7 @@ mean_gad7_true_colours_w_group <- mean_gad7_true_colours_participant_overall %>%
 
 tRMSSD_true_colours_overall <- cbind(tRMSSD_qids_true_colours_w_group, tRMSSD_altman_true_colours_w_group, tRMSSD_gad7_true_colours_w_group) 
 
-mean_true_colours_overall <- cbind(mean_qids_true_colours_w_group, mean_altman_true_colours_w_group, mean_gad7_true_colours_w_group)
+write_csv(tRMSSD_true_colours_overall, "data/processed/tRMSSD_true_colours_by_participant.csv")
 
 tRMSSD_true_colours_overall_long <- tRMSSD_true_colours_overall %>% #data wrangling - make long version of overall true colours tRMSSD
   pivot_longer(-c(participant_id, Group)) %>% 
@@ -1025,6 +1025,8 @@ ggsave(plot = tRMSSD_true_colours_box_plot, "tRMSSD_true_colours_box_plot.png", 
 # data wrangling - first join 3 true colours average files together
 
 mean_true_colours_overall <- cbind(mean_qids_true_colours_w_group, mean_altman_true_colours_w_group, mean_gad7_true_colours_w_group)
+
+write_csv(mean_true_colours_overall, "data/processed/mean_true_colours_by_participant.csv")
 
 mean_true_colours_overall_long <- mean_true_colours_overall %>% #data wrangling - make long version of overall true colours mean
   pivot_longer(-c(participant_id, Group)) %>% 
