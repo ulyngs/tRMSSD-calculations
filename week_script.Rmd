@@ -867,7 +867,6 @@ gad7_true_colours_data <- raw_data_true_colours_gad7_clean %>%
 ```
 
 ### Calculate tRMSSD
-
 #### By participant only
 There is only one true colours recording per week (per participant) so can only have overall (by participant) tRMSSD score
 ```{r}
@@ -907,6 +906,44 @@ write_csv(tRMSSD_gad7_true_colours_participant_overall, "data/processed/tRMSSD_g
 
 ```
 
+### Calculate averages
+#### By participant only
+```{r}
+
+# qids
+mean_qids_true_colours_participant_overall <- qids_true_colours_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(summary), ~ mean(.x, na.rm = TRUE))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("average_", .)) %>% 
+  arrange(participant_id)
+
+mean_qids_true_colours_participant_overall
+
+write_csv(mean_qids_true_colours_participant_overall, "data/processed/mean_qids_true_colours_by_participant.csv")
+
+# altman
+mean_altman_true_colours_participant_overall <- altman_true_colours_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(summary), ~ mean(.x, na.rm = TRUE))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("average_", .)) %>% 
+  arrange(participant_id)
+
+mean_altman_true_colours_participant_overall
+
+write_csv(mean_altman_true_colours_participant_overall, "data/processed/mean_altman_true_colours_by_participant.csv")
+
+# gad7
+mean_gad7_true_colours_participant_overall <- gad7_true_colours_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(summary), ~ mean(.x, na.rm = TRUE))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("average_", .)) %>% 
+  arrange(participant_id)
+
+mean_gad7_true_colours_participant_overall
+
+write_csv(mean_gad7_true_colours_participant_overall, "data/processed/mean_gad7_true_colours_by_participant.csv")
+
+```
 
 
 
