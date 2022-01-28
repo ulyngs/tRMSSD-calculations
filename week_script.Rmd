@@ -875,7 +875,7 @@ There is only one true colours recording per week (per participant) so can only 
 tRMSSD_qids_true_colours_participant_overall <- qids_true_colours_data %>% 
   group_by(participant_id) %>% 
   summarise(across(c(summary), ~ calc_tRMSSD(.x, date_as_number))) %>%  
-  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_", .)) %>% 
+  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_qids_", .)) %>% 
   arrange(participant_id)
 
 tRMSSD_qids_true_colours_participant_overall
@@ -886,7 +886,7 @@ write_csv(tRMSSD_qids_true_colours_participant_overall, "data/processed/tRMSSD_q
 tRMSSD_altman_true_colours_participant_overall <- altman_true_colours_data %>% 
   group_by(participant_id) %>% 
   summarise(across(c(summary), ~ calc_tRMSSD(.x, date_as_number))) %>%  
-  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_", .)) %>% 
+  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_altman_", .)) %>% 
   arrange(participant_id)
 
 tRMSSD_altman_true_colours_participant_overall
@@ -897,7 +897,7 @@ write_csv(tRMSSD_altman_true_colours_participant_overall, "data/processed/tRMSSD
 tRMSSD_gad7_true_colours_participant_overall <- gad7_true_colours_data %>% 
   group_by(participant_id) %>% 
   summarise(across(c(summary), ~ calc_tRMSSD(.x, date_as_number))) %>%  
-  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_", .)) %>% 
+  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_gad7_", .)) %>% 
   arrange(participant_id)
 
 tRMSSD_gad7_true_colours_participant_overall
@@ -914,7 +914,7 @@ write_csv(tRMSSD_gad7_true_colours_participant_overall, "data/processed/tRMSSD_g
 mean_qids_true_colours_participant_overall <- qids_true_colours_data %>% 
   group_by(participant_id) %>% 
   summarise(across(c(summary), ~ mean(.x, na.rm = TRUE))) %>%  
-  rename_with(.cols = -c(participant_id), ~str_c("average_", .)) %>% 
+  rename_with(.cols = -c(participant_id), ~str_c("average_qids_", .)) %>% 
   arrange(participant_id)
 
 mean_qids_true_colours_participant_overall
@@ -925,7 +925,7 @@ write_csv(mean_qids_true_colours_participant_overall, "data/processed/mean_qids_
 mean_altman_true_colours_participant_overall <- altman_true_colours_data %>% 
   group_by(participant_id) %>% 
   summarise(across(c(summary), ~ mean(.x, na.rm = TRUE))) %>%  
-  rename_with(.cols = -c(participant_id), ~str_c("average_", .)) %>% 
+  rename_with(.cols = -c(participant_id), ~str_c("average_altman_", .)) %>% 
   arrange(participant_id)
 
 mean_altman_true_colours_participant_overall
@@ -936,13 +936,114 @@ write_csv(mean_altman_true_colours_participant_overall, "data/processed/mean_alt
 mean_gad7_true_colours_participant_overall <- gad7_true_colours_data %>% 
   group_by(participant_id) %>% 
   summarise(across(c(summary), ~ mean(.x, na.rm = TRUE))) %>%  
-  rename_with(.cols = -c(participant_id), ~str_c("average_", .)) %>% 
+  rename_with(.cols = -c(participant_id), ~str_c("average_gad7_", .)) %>% 
   arrange(participant_id)
 
 mean_gad7_true_colours_participant_overall
 
 write_csv(mean_gad7_true_colours_participant_overall, "data/processed/mean_gad7_true_colours_by_participant.csv")
 
+```
+
+### Visualise True Colours data
+#### Join the group information
+
+So in order to do this we want the information about the condition they were in! Yay!
+
+We join with their group and then we drop the ones who don't have a group (there's like 4 of them - these are ppl who dropped out or were otherwise excluded)
+
+```{r}
+#condition_info_panas <- read_csv("data/COMET_group_panas.csv") %>% #this condition/group file excludes c15 variability outlier
+condition_info_true_colours <- read_csv("data/COMET_group.csv") %>% #this condition/group file includes c15 outlier
+  select(-`Participant ID`) %>% 
+  mutate(Group = if_else(Group == 2, "low MDQ", "high MDQ")) %>% 
+  rename(participant_id = ID)
+
+# Join for qids
+tRMSSD_qids_true_colours_w_group <- tRMSSD_qids_true_colours_participant_overall %>% 
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) 
+
+mean_qids_true_colours_w_group <- mean_qids_true_colours_participant_overall %>% 
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) 
+
+# Join for altman
+tRMSSD_altman_true_colours_w_group <- tRMSSD_altman_true_colours_participant_overall %>% 
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) 
+
+mean_altman_true_colours_w_group <- mean_altman_true_colours_participant_overall %>% 
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) 
+
+# Join for gad7
+tRMSSD_gad7_true_colours_w_group <- tRMSSD_gad7_true_colours_participant_overall %>% 
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) 
+
+mean_gad7_true_colours_w_group <- mean_gad7_true_colours_participant_overall %>% 
+  left_join(condition_info_panas) %>% 
+  filter(!is.na(Group)) 
+
+```
+
+#### Boxplot for overall tRMSSD
+```{r}
+
+# data wrangling - first join 3 true colours tRMSSD files together
+
+tRMSSD_true_colours_overall <- cbind(tRMSSD_qids_true_colours_w_group, tRMSSD_altman_true_colours_w_group, tRMSSD_gad7_true_colours_w_group) 
+
+mean_true_colours_overall <- cbind(mean_qids_true_colours_w_group, mean_altman_true_colours_w_group, mean_gad7_true_colours_w_group)
+
+tRMSSD_true_colours_overall_long <- tRMSSD_true_colours_overall %>% #data wrangling - make long version of overall true colours tRMSSD
+  pivot_longer(-c(participant_id, Group)) %>% 
+  rename(measure = name) %>% 
+  mutate(measure = str_remove(measure, "tRMSSD_")) %>% 
+  mutate(measure = str_remove(measure, "_summary"))
+
+tRMSSD_true_colours_box_plot <- tRMSSD_true_colours_overall_long %>%
+  ggplot() +
+    aes(x = measure, y = value, fill = Group) +
+    geom_boxplot(lwd=0.7, width=1.4, outlier.color = NA) +
+    # scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1)) +
+    theme_minimal() +
+    facet_wrap(~measure, scales = "free") +
+    labs(title = "Variability in overall True Colours scales", x = "True Colours", y = "tRMSSD")
+  
+tRMSSD_true_colours_box_plot
+
+ggsave(plot = tRMSSD_true_colours_box_plot, "tRMSSD_true_colours_box_plot.png", height = 4, width = 7)
+  
+  
+```
+
+#### Boxplot for overall tRMSSD
+```{r}
+
+# data wrangling - first join 3 true colours average files together
+
+mean_true_colours_overall <- cbind(mean_qids_true_colours_w_group, mean_altman_true_colours_w_group, mean_gad7_true_colours_w_group)
+
+mean_true_colours_overall_long <- mean_true_colours_overall %>% #data wrangling - make long version of overall true colours mean
+  pivot_longer(-c(participant_id, Group)) %>% 
+  rename(measure = name) %>% 
+  mutate(measure = str_remove(measure, "average_")) %>% 
+  mutate(measure = str_remove(measure, "_summary"))
+
+mean_true_colours_box_plot <- mean_true_colours_overall_long %>%
+  ggplot() +
+    aes(x = measure, y = value, fill = Group) +
+    geom_boxplot(lwd=0.7, width=1.4, outlier.color = NA) +
+    # scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1)) +
+    theme_minimal() +
+    facet_wrap(~measure, scales = "free") +
+    labs(title = "Overall average True Colours", x = "True Colours", y = "mean")
+  
+mean_true_colours_box_plot
+
+ggsave(plot = mean_true_colours_box_plot, "mean_true_colours_box_plot.png", height = 4, width = 7)
 ```
 
 
