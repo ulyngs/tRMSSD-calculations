@@ -767,29 +767,55 @@ ggsave(plot = mean_panas_box_plot, "mean_panas_box_plot.png", height = 4, width 
 ### Read in data
 ```{r, message=FALSE}
 # get the csv files in a named vector
-participant_data_true_colours <- list.files(path = "data/raw/True_Colours", pattern = "true_colours.csv$", full.names = TRUE) %>% 
-  set_names()
+# participant_data_true_colours <- list.files(path = "data/raw/True_Colours", pattern = "true_colours.csv$", full.names = TRUE) %>% 
+  # set_names()
 
 # read them in and put in a data frame
-raw_data_true_colours <- map_df(participant_data_true_colours, read_csv, .id = "csv_file")
+# raw_data_true_colours <- map_df(participant_data_true_colours, read_csv, .id = "csv_file")
 
+# actually should read in true colours data separately for each questionnaire (?)
+
+participant_data_true_colours_qids <- read_csv("data/raw/True_Colours/qids_true_colours.csv")
+participant_data_true_colours_altman <- read_csv("data/raw/True_Colours/altman_true_colours.csv")
+participant_data_true_colours_gad7 <- read_csv("data/raw/True_Colours/gad7_true_colours.csv")
 
 ```
 
 ### Clean data
+Do all true colours questionnaires separately (QIDS, Altman, GAD-7)
 ```{r, message=FALSE}
 id_info_true_colours <- read_csv("data/true_colours_id.csv") %>% 
   select(-`Participant_no`) %>% 
   rename(participant_id = ID)
 
-raw_data_true_colours_clean <- raw_data_true_colours %>%
-  select(-`csv_file`) %>% 
+# raw_data_true_colours_clean <- raw_data_true_colours %>%
+#  select(-`csv_file`) %>% 
+#  left_join(id_info_true_colours) %>%
+#  relocate(participant_id)
+
+# add participant id to raw qids data and filter out anyone without participant id (just first test row)
+raw_data_true_colours_qids_clean <- participant_data_true_colours_qids %>%
+  select(-`q1`, -`q2`, -`q3`, -`q4`, -`q5`, -`q6`, -`q7`, -`q8`, -`q9`, -`q10`, -`q11`, -`q12`, -`q13`, -`q14`, -`q15`, -`q16`) %>% 
   left_join(id_info_true_colours) %>%
+  filter(!is.na(participant_id)) %>%
   relocate(participant_id)
 
-view(raw_data_true_colours_clean)
+# add participant id to raw altman data and filter out anyone without participant id (just first test row)
+raw_data_true_colours_altman_clean <- participant_data_true_colours_altman %>%
+  select(-`q1`, -`q2`, -`q3`, -`q4`, -`q5`) %>% 
+  left_join(id_info_true_colours) %>%
+  filter(!is.na(participant_id)) %>%
+  relocate(participant_id)
 
-true_colours_data <- raw_data_true_colours_clean %>%
+# add participant id to raw gad7 data and filter out anyone without participant id (just first test row)
+raw_data_true_colours_gad7_clean <- participant_data_true_colours_gad7 %>%
+  select(-`q1`, -`q2`, -`q3`, -`q4`, -`q5`, -`q6`, -`q7`) %>% 
+  left_join(id_info_true_colours) %>%
+  filter(!is.na(participant_id)) %>%
+  relocate(participant_id)
+
+# clean time stamp info for qids data
+qids_true_colours_data <- raw_data_true_colours_qids_clean %>%
   mutate(date_time = str_c(date_time),
          date_time = ymd_hms(date_time),
          date = date(date_time),
@@ -804,13 +830,82 @@ true_colours_data <- raw_data_true_colours_clean %>%
   distinct() %>% # drop duplicate rows
   relocate(date_time, weekday, weeks_count_from_start)
 
-view(true_colours_data)
+
+# clean time stamp info for altman data
+altman_true_colours_data <- raw_data_true_colours_altman_clean %>%
+  mutate(date_time = str_c(date_time),
+         date_time = ymd_hms(date_time),
+         date = date(date_time),
+         weekday = wday(date_time, label = TRUE),
+         date_time_as_number = as.numeric(date_time),
+         date_as_number = as.numeric(date), 
+         year = year(date)) %>% 
+  group_by(participant_id) %>% 
+  mutate(days_relative_to_first_measurement = date_as_number - min(date_as_number),
+         weeks_count_from_start = floor(days_relative_to_first_measurement / 7) + 1) %>% 
+  filter(across(c(summary), ~!is.na(.))) %>%  # drop rows with no measurements!
+  distinct() %>% # drop duplicate rows
+  relocate(date_time, weekday, weeks_count_from_start)
 
 
+# clean time stamp info for gad7 data
+gad7_true_colours_data <- raw_data_true_colours_gad7_clean %>%
+  mutate(date_time = str_c(date_time),
+         date_time = ymd_hms(date_time),
+         date = date(date_time),
+         weekday = wday(date_time, label = TRUE),
+         date_time_as_number = as.numeric(date_time),
+         date_as_number = as.numeric(date), 
+         year = year(date)) %>% 
+  group_by(participant_id) %>% 
+  mutate(days_relative_to_first_measurement = date_as_number - min(date_as_number),
+         weeks_count_from_start = floor(days_relative_to_first_measurement / 7) + 1) %>% 
+  filter(across(c(summary), ~!is.na(.))) %>%  # drop rows with no measurements!
+  distinct() %>% # drop duplicate rows
+  relocate(date_time, weekday, weeks_count_from_start)
 
 ```
 
+### Calculate tRMSSD
 
+#### By participant only
+There is only one true colours recording per week (per participant) so can only have overall (by participant) tRMSSD score
+```{r}
+
+# qids
+tRMSSD_qids_true_colours_participant_overall <- qids_true_colours_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(summary), ~ calc_tRMSSD(.x, date_as_number))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_", .)) %>% 
+  arrange(participant_id)
+
+tRMSSD_qids_true_colours_participant_overall
+
+write_csv(tRMSSD_qids_true_colours_participant_overall, "data/processed/tRMSSD_qids_true_colours_by_participant.csv")
+
+# altman
+tRMSSD_altman_true_colours_participant_overall <- altman_true_colours_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(summary), ~ calc_tRMSSD(.x, date_as_number))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_", .)) %>% 
+  arrange(participant_id)
+
+tRMSSD_altman_true_colours_participant_overall
+
+write_csv(tRMSSD_altman_true_colours_participant_overall, "data/processed/tRMSSD_altman_true_colours_by_participant.csv")
+
+# gad7
+tRMSSD_gad7_true_colours_participant_overall <- gad7_true_colours_data %>% 
+  group_by(participant_id) %>% 
+  summarise(across(c(summary), ~ calc_tRMSSD(.x, date_as_number))) %>%  
+  rename_with(.cols = -c(participant_id), ~str_c("tRMSSD_", .)) %>% 
+  arrange(participant_id)
+
+tRMSSD_gad7_true_colours_participant_overall
+
+write_csv(tRMSSD_gad7_true_colours_participant_overall, "data/processed/tRMSSD_gad7_true_colours_by_participant.csv")
+
+```
 
 
 
