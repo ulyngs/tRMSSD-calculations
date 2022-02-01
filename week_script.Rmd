@@ -962,29 +962,29 @@ condition_info_true_colours <- read_csv("data/COMET_group.csv") %>% #this condit
 
 # Join for qids
 tRMSSD_qids_true_colours_w_group <- tRMSSD_qids_true_colours_participant_overall %>% 
-  left_join(condition_info_panas) %>% 
+  left_join(condition_info_true_colours) %>% 
   filter(!is.na(Group)) 
 
 mean_qids_true_colours_w_group <- mean_qids_true_colours_participant_overall %>% 
-  left_join(condition_info_panas) %>% 
+  left_join(condition_info_true_colours) %>% 
   filter(!is.na(Group)) 
 
 # Join for altman
 tRMSSD_altman_true_colours_w_group <- tRMSSD_altman_true_colours_participant_overall %>% 
-  left_join(condition_info_panas) %>% 
+  left_join(condition_info_true_colours) %>% 
   filter(!is.na(Group)) 
 
 mean_altman_true_colours_w_group <- mean_altman_true_colours_participant_overall %>% 
-  left_join(condition_info_panas) %>% 
+  left_join(condition_info_true_colours) %>% 
   filter(!is.na(Group)) 
 
 # Join for gad7
 tRMSSD_gad7_true_colours_w_group <- tRMSSD_gad7_true_colours_participant_overall %>% 
-  left_join(condition_info_panas) %>% 
+  left_join(condition_info_true_colours) %>% 
   filter(!is.na(Group)) 
 
 mean_gad7_true_colours_w_group <- mean_gad7_true_colours_participant_overall %>% 
-  left_join(condition_info_panas) %>% 
+  left_join(condition_info_true_colours) %>% 
   filter(!is.na(Group)) 
 
 ```
