@@ -258,7 +258,8 @@ tRMSSD_acti_plot
     
 ggsave(plot = tRMSSD_acti_plot, "tRMSSD_acti_plot.png", height = 5, width = 8) 
 
-  
+view(tRMSSD_acti_long)
+view(tRMSSD_acti_weeks)
 ```
 
 
@@ -1051,7 +1052,7 @@ ggsave(plot = mean_true_colours_box_plot, "mean_true_colours_box_plot.png", heig
 
 #### Visualisations across weeks (for average only)
 ```{r}
-week_true_colours_data = read.csv("data/weekly_true_colours_data.csv")
+week_true_colours_data = read.csv("data/true_colours_weeks.csv")
 
 #condition_info_panas <- read_csv("data/COMET_group_panas.csv") %>% #this condition/group file excludes c15 variability outlier
 condition_info_true_colours <- read_csv("data/COMET_group.csv") %>% #this condition/group file includes c15 outlier
@@ -1060,14 +1061,65 @@ condition_info_true_colours <- read_csv("data/COMET_group.csv") %>% #this condit
   rename(participant_id = ID)
 
 week_true_colours_data_w_group <- week_true_colours_data %>%
-  left_join(condition_info_panas) %>% 
+  left_join(condition_info_true_colours) %>% 
   filter(!is.na(Group)) %>% 
   relocate(Group)
 
-week_true_colours_data_w_group
+view(week_true_colours_data_w_group)
 
 
 ```
+
+Data wranging first
+
+```{r}
+true_colours_long <- week_true_colours_data_w_group %>% 
+  pivot_longer(-c(participant_id, Group, weeks_count_from_start)) %>% 
+  rename(measure = name) 
+  
+view(true_colours_long)
+
+#plot with all participants as line
+
+true_colours_all_plot <- true_colours_long %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = value, color = Group) +
+    geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = participant_id)) +
+    facet_wrap(~measure, scales = "free")
+
+true_colours_all_plot 
+```
+
+#### do the averages (with standard error of the mean)
+
+```{r}
+true_colours_aves <- true_colours_long %>% 
+  group_by(Group, weeks_count_from_start, measure) %>% 
+  summarise(ave_true_colours = mean(value, na.rm = TRUE),
+            sd_true_colours = sd(value, na.rm = TRUE),
+            se_true_colours = sd_true_colours/sqrt(n()))
+  
+
+true_colours_plot <- true_colours_aves %>% 
+  ggplot() +
+    aes(x = weeks_count_from_start, y = ave_true_colours, color = Group) +
+    geom_point(height = 0, width = 0.1, alpha = 0.5) +
+    geom_line(aes(group = Group)) +
+    geom_errorbar(aes(ymin = ave_true_colours - se_true_colours, ymax = ave_true_colours + se_true_colours), width = 0.5, alpha = 0.8) +
+    facet_wrap(~measure, scales = "free") +
+    theme_minimal() +
+    labs(title = "True Colours scores across weeks", x = "Week number", y = "Mean score") 
+
+true_colours_plot
+    
+ggsave(plot = true_colours_plot, "true_colours_plot.png", height = 5, width = 8) 
+
+```
+
+
+
+
 
 
 
