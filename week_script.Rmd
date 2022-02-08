@@ -293,6 +293,7 @@ tRMSSD_acti_box_plot <- tRMSSD_acti_overall_long %>%
   ggplot() +
     aes(x = measure, y = value, fill = Group) +
     geom_boxplot(lwd=0.7, width=1.4, outlier.color = NA) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15), alpha = 0.7) +
     #scale_y_continuous(breaks = seq(0, 6, 0.5), limits = c(0, 6)) +
     theme_minimal() +
     facet_wrap(~measure, scales = "free") +
@@ -393,6 +394,7 @@ mean_acti_box_plot <- mean_acti_overall_long %>%
   ggplot() +
     aes(x = measure, y = value, fill = Group) +
     geom_boxplot(lwd=0.7, width=1.4, outlier.color = NA) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15), alpha = 0.6) +
     #scale_y_continuous(breaks = seq(0, 6, 0.5), limits = c(0, 6)) +
     theme_minimal() +
     facet_wrap(~measure, scales = "free") +
@@ -653,6 +655,7 @@ tRMSSD_panas_box_plot <- tRMSSD_panas_overall_long %>%
   ggplot() +
     aes(x = measure, y = value, fill = Group) +
     geom_boxplot(lwd=0.7, width=1.4, outlier.color = NA) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15), alpha = 0.7) +
     scale_y_continuous(breaks = seq(0, 6, 0.5), limits = c(0, 6)) +
     theme_minimal() +
     #facet_wrap(~measure, scales = "free") +
@@ -753,12 +756,14 @@ mean_panas_box_plot <- mean_panas_overall_long %>%
   ggplot() +
     aes(x = measure, y = value, fill = Group) +
     geom_boxplot(lwd=0.7, width=1.4, outlier.color = NA) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15), alpha = 0.6) +
     scale_y_continuous(breaks = seq(0, 15, 1), limits = c(0, 15)) +
     theme_minimal() +
     #facet_wrap(~measure, scales = "free") +
     labs(title = "Overall average PANAS", x = "PANAS", y = "Mean")
   
 mean_panas_box_plot
+
 
 ggsave(plot = mean_panas_box_plot, "mean_panas_box_plot.png", height = 4, width = 7)
   
@@ -1065,7 +1070,7 @@ week_true_colours_data_w_group <- week_true_colours_data %>%
   filter(!is.na(Group)) %>% 
   relocate(Group)
 
-view(week_true_colours_data_w_group)
+
 
 
 ```
@@ -1076,8 +1081,6 @@ Data wrangling first
 true_colours_long <- week_true_colours_data_w_group %>% 
   pivot_longer(-c(participant_id, Group, weeks_count_from_start)) %>% 
   rename(measure = name) 
-  
-view(true_colours_long)
 
 #plot with all participants as line
 
@@ -1101,8 +1104,6 @@ true_colours_aves <- true_colours_long %>%
   summarise(ave_true_colours = mean(value, na.rm = TRUE),
             sd_true_colours = sd(value, na.rm = TRUE),
             se_true_colours = sd_true_colours/sqrt(n()))
- 
-view(true_colours_aves) 
 
 true_colours_plot <- true_colours_aves %>% 
   ggplot() +
