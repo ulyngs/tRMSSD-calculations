@@ -1070,7 +1070,7 @@ view(week_true_colours_data_w_group)
 
 ```
 
-Data wranging first
+Data wrangling first
 
 ```{r}
 true_colours_long <- week_true_colours_data_w_group %>% 
@@ -1084,6 +1084,8 @@ view(true_colours_long)
 true_colours_all_plot <- true_colours_long %>% 
   ggplot() +
     aes(x = weeks_count_from_start, y = value, color = Group) +
+    scale_x_continuous(breaks = seq(1, 10, 1), limits = c(1, 10)) +
+    #scale_y_continuous(breaks = seq(0, 6, 0.5), limits = c(0, 6))
     geom_jitter(height = 0, width = 0.1, alpha = 0.5) +
     geom_line(aes(group = participant_id)) +
     facet_wrap(~measure, scales = "free")
@@ -1099,11 +1101,13 @@ true_colours_aves <- true_colours_long %>%
   summarise(ave_true_colours = mean(value, na.rm = TRUE),
             sd_true_colours = sd(value, na.rm = TRUE),
             se_true_colours = sd_true_colours/sqrt(n()))
-  
+ 
+view(true_colours_aves) 
 
 true_colours_plot <- true_colours_aves %>% 
   ggplot() +
     aes(x = weeks_count_from_start, y = ave_true_colours, color = Group) +
+    scale_x_continuous(breaks = seq(1, 10, 1), limits = c(1, 10)) +
     geom_point(height = 0, width = 0.1, alpha = 0.5) +
     geom_line(aes(group = Group)) +
     geom_errorbar(aes(ymin = ave_true_colours - se_true_colours, ymax = ave_true_colours + se_true_colours), width = 0.5, alpha = 0.8) +
